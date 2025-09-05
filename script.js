@@ -1,17 +1,16 @@
-/**************************************
- * Harvey PDF Table — Enhanced Version
- * - Persist full table in localStorage
- * - Rebuild table on load
- * - Date column uses <input type="date">
- * - New rows default to today's date
+/********************************************
+ * Harvey PDF Table — Branch-Aware Version
+ * - Separate localStorage per branch
+ * - Auto-load/switch data when branch changes
+ * - Date column uses <input type="date"> (defaults to today)
  * - Auto-save after any change
- **************************************/
+ ********************************************/
 
-let rowCounter = 1; // will be updated dynamically
+let rowCounter = 1;          // updated dynamically
+let activeBranch = null;     // tracks which branch is currently loaded
 
 // ---------- Utilities ----------
 function isoToday() {
-    // yyyy-mm-dd
     const d = new Date();
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -20,11 +19,7 @@ function isoToday() {
 }
 
 function toIsoDateOrEmpty(value) {
-    // If already yyyy-mm-dd, return as is
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        return value;
-    }
-    // Try to parse free text date to ISO, else return ''
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
     const parsed = new Date(value);
     if (!isNaN(parsed.getTime())) {
         const yyyy = parsed.getFullYear();
@@ -35,38 +30,63 @@ function toIsoDateOrEmpty(value) {
     return '';
 }
 
+function getBranchValue() {
+    return document.getElementById('branchName').value || 'Default';
+}
+
+function getStorageKey(branchName) {
+    // Namespace per branch to avoid collisions between branches
+    const b = branchName || activeBranch || getBranchValue();
+    // Safe key for any language
+    return `harveyPDFData:${encodeURIComponent(b)}`;
+}
+
+function getMetaKey() {
+    return 'harveyPDFMeta';
+}
+
 // ---------- Init ----------
 document.addEventListener('DOMContentLoaded', function () {
-    // Only set reportDate to today if it's not already saved
-    if (!localStorage.getItem('harveyPDFData')) {
+    // restore last branch if saved, else use current select value
+    const meta = loadMeta();
+    const branchSelect = document.getElementById('branchName');
+
+    if (meta?.lastBranch) {
+        branchSelect.value = meta.lastBranch; // if it exists in the dropdown it will select it
+    }
+
+    activeBranch = getBranchValue();
+
+    // Only set reportDate to today if no saved data for this branch
+    if (!localStorage.getItem(getStorageKey(activeBranch))) {
         document.getElementById('reportDate').value = isoToday();
     }
 
-    // Load saved state (this also rebuilds the table if saved)
-    loadFromLocalStorage();
+    // Load state for current branch (also rebuilds the table if saved)
+    loadFromLocalStorage(activeBranch);
 
-    // Ensure any pre-existing rows in HTML use <input type="date"> with default today
+    // Ensure any pre-existing static HTML rows use <input type="date">
     ensureDateInputsOnExistingRows();
 
-    // Setup listeners
+    // Setup listeners (includes branch change handler)
     setupEventListeners();
 
-    // Recalculate nets for any existing rows
+    // Recalculate nets for existing rows
     document.querySelectorAll('tbody tr').forEach(tr => {
         const idx = parseInt(tr.getAttribute('data-row'), 10);
         if (!isNaN(idx)) calculateNet(idx);
     });
 
-    console.log('تم تحميل مولد PDF للجداول بنجاح - Harvey Edition');
+    console.log('تم تحميل مولد PDF للجداول بنجاح - Harvey Edition (فروع متعددة)');
 });
 
-// Convert the first cell in each existing row to <input type="date"> if it isn't already
+// Convert first cell to <input type="date"> on existing rows if needed
 function ensureDateInputsOnExistingRows() {
     const tbody = document.querySelector('#dataTable tbody');
     if (!tbody) return;
 
     const rows = Array.from(tbody.querySelectorAll('tr'));
-    rows.forEach((tr, i) => {
+    rows.forEach((tr) => {
         const dateCell = tr.cells[0];
         if (!dateCell) return;
 
@@ -76,13 +96,11 @@ function ensureDateInputsOnExistingRows() {
 
         dateCell.innerHTML = `<input type="date" value="${toIsoDateOrEmpty(existingValue) || isoToday()}">`;
 
-        // Attach save listener to the new date input
         const dateInput = dateCell.querySelector('input[type="date"]');
         dateInput.addEventListener('change', saveToLocalStorage);
         dateInput.addEventListener('input', saveToLocalStorage);
     });
 
-    // Update rowCounter to current number of rows
     rowCounter = rows.length;
 }
 
@@ -107,40 +125,142 @@ function setupEventListeners() {
         input.addEventListener('input', saveToLocalStorage);
     });
 
-    // First load already handled in DOMContentLoaded
+    // Branch change handler — save current, then load target branch
+    document.getElementById('branchName').addEventListener('change', onBranchChange);
+}
+
+function onBranchChange() {
+    const prevBranch = activeBranch;
+    const nextBranch = getBranchValue();
+
+    // 1) Save current branch data under its own key
+    if (prevBranch) {
+        saveToLocalStorage(prevBranch);
+    }
+
+    // 2) Update active branch and meta
+    activeBranch = nextBranch;
+    saveMeta({ lastBranch: activeBranch });
+
+    // 3) Load the selected branch data
+    const loaded = loadFromLocalStorage(activeBranch);
+
+    // 4) If nothing existed for that branch, start a clean default row
+    if (!loaded) {
+        buildDefaultTable(); // sets today as default
+        document.getElementById('reportDate').value = isoToday();
+        // Auto-save the empty state so switching away/back shows consistent baseline
+        saveToLocalStorage(activeBranch);
+    }
+
+    // 5) Recalc net for all rows in the loaded/created table
+    document.querySelectorAll('tbody tr').forEach(tr => {
+        const idx = parseInt(tr.getAttribute('data-row'), 10);
+        if (!isNaN(idx)) calculateNet(idx);
+    });
+
+    showNotification(`تم تحميل بيانات ${activeBranch}`, 'success');
 }
 
 // ---------- Persistence ----------
-function saveToLocalStorage() {
+function saveToLocalStorage(forcedBranchName) {
     try {
+        const branchName = forcedBranchName || activeBranch || getBranchValue();
         const data = {
-            branch: document.getElementById('branchName').value,
+            branch: branchName,
             title: document.getElementById('reportTitle').value,
             date: document.getElementById('reportDate').value || isoToday(),
             tableData: collectTableData()
         };
-        localStorage.setItem('harveyPDFData', JSON.stringify(data));
+        localStorage.setItem(getStorageKey(branchName), JSON.stringify(data));
+
+        // also keep meta (lastBranch) fresh
+        saveMeta({ lastBranch: branchName });
     } catch (e) {
         console.log('Could not save to localStorage');
     }
 }
 
-function loadFromLocalStorage() {
+/**
+ * Loads data for a given branch.
+ * @returns {boolean} true if data existed and was loaded; false otherwise
+ */
+function loadFromLocalStorage(branchName) {
     try {
-        const saved = localStorage.getItem('harveyPDFData');
+        const saved = localStorage.getItem(getStorageKey(branchName));
         if (saved) {
             const data = JSON.parse(saved);
-            if (data.branch) document.getElementById('branchName').value = data.branch;
+            // IMPORTANT: set the dropdown to the branch of the loaded data (if different)
+            const branchSelect = document.getElementById('branchName');
+            if (branchSelect.value !== data.branch) branchSelect.value = data.branch;
+
             if (data.title) document.getElementById('reportTitle').value = data.title;
-            if (data.date) document.getElementById('reportDate').value = data.date;
+            if (data.date)  document.getElementById('reportDate').value = data.date;
 
             if (data.tableData && Array.isArray(data.tableData.rows)) {
                 renderTableFromData(data.tableData);
+            } else {
+                buildDefaultTable();
             }
+
+            activeBranch = data.branch;
+            return true;
         }
+        return false;
     } catch (e) {
         console.log('Could not load from localStorage');
+        return false;
     }
+}
+
+function saveMeta(partial = {}) {
+    const current = loadMeta() || {};
+    const merged = { ...current, ...partial };
+    localStorage.setItem(getMetaKey(), JSON.stringify(merged));
+}
+
+function loadMeta() {
+    try {
+        const m = localStorage.getItem(getMetaKey());
+        return m ? JSON.parse(m) : null;
+    } catch {
+        return null;
+    }
+}
+
+// ---------- Default Table Builder ----------
+function buildDefaultTable() {
+    const tbody = document.querySelector('#dataTable tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr data-row="0">
+            <td><input type="date" value="${isoToday()}"></td>
+            <td><input type="number" placeholder="0" onchange="calculateNet(0)" oninput="calculateNet(0)"></td>
+            <td><input type="number" placeholder="0" onchange="calculateNet(0)" oninput="calculateNet(0)"></td>
+            <td class="expenses-cell">
+                <div class="expenses-container" id="expenses-0">
+                    <div class="expense-item">
+                        <input type="number" placeholder="المبلغ" onchange="calculateNet(0)" oninput="calculateNet(0)">
+                        <span class="expense-separator">:</span>
+                        <input type="text" placeholder="الوصف" class="expense-description">
+                        <button type="button" onclick="removeExpense(this, 0)" class="remove-expense" title="حذف المصروف">×</button>
+                    </div>
+                </div>
+                <button type="button" onclick="addExpense(0)" class="add-expense">+ إضافة مصروف</button>
+            </td>
+            <td><input type="number" class="net-field" readonly placeholder="0"></td>
+            <td><input type="number" placeholder="0"></td>
+        </tr>
+    `;
+
+    rowCounter = 1;
+
+    // Bind save events for fresh inputs
+    document.querySelectorAll('tbody input, select').forEach(input => {
+        input.addEventListener('change', saveToLocalStorage);
+        input.addEventListener('input', saveToLocalStorage);
+    });
 }
 
 // ---------- Row & Expense Controls ----------
@@ -196,35 +316,7 @@ function removeRow() {
 
 function clearTable() {
     if (confirm('هل أنت متأكد من مسح جميع البيانات؟')) {
-        const tbody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-        tbody.innerHTML = `
-            <tr data-row="0">
-                <td><input type="date" value="${isoToday()}"></td>
-                <td><input type="number" placeholder="0" onchange="calculateNet(0)" oninput="calculateNet(0)"></td>
-                <td><input type="number" placeholder="0" onchange="calculateNet(0)" oninput="calculateNet(0)"></td>
-                <td class="expenses-cell">
-                    <div class="expenses-container" id="expenses-0">
-                        <div class="expense-item">
-                            <input type="number" placeholder="المبلغ" onchange="calculateNet(0)" oninput="calculateNet(0)">
-                            <span class="expense-separator">:</span>
-                            <input type="text" placeholder="الوصف" class="expense-description">
-                            <button type="button" onclick="removeExpense(this, 0)" class="remove-expense" title="حذف المصروف">×</button>
-                        </div>
-                    </div>
-                    <button type="button" onclick="addExpense(0)" class="add-expense">+ إضافة مصروف</button>
-                </td>
-                <td><input type="number" class="net-field" readonly placeholder="0"></td>
-                <td><input type="number" placeholder="0"></td>
-            </tr>
-        `;
-        rowCounter = 1;
-
-        // Re-bind save events
-        document.querySelectorAll('input, select').forEach(input => {
-            input.addEventListener('change', saveToLocalStorage);
-            input.addEventListener('input', saveToLocalStorage);
-        });
-
+        buildDefaultTable();
         saveToLocalStorage();
         showNotification('تم مسح الجدول بنجاح', 'success');
     }
@@ -242,13 +334,11 @@ function addExpense(rowIndex) {
     `;
     expensesContainer.appendChild(newExpenseItem);
 
-    // Bind save events
     newExpenseItem.querySelectorAll('input').forEach(input => {
         input.addEventListener('change', saveToLocalStorage);
         input.addEventListener('input', saveToLocalStorage);
     });
 
-    // Focus amount
     const amountInput = newExpenseItem.querySelector('input[type="number"]');
     setTimeout(() => amountInput && amountInput.focus(), 100);
 }
@@ -274,31 +364,22 @@ function calculateNet(rowIndex) {
     const morningShift = parseFloat(row.cells[1].querySelector('input').value) || 0;
     const eveningShift = parseFloat(row.cells[2].querySelector('input').value) || 0;
 
-    // Total expenses
-    const expensesContainer = document.getElementById(`expenses-${rowIndex}`);
     let totalExpenses = 0;
-
+    const expensesContainer = document.getElementById(`expenses-${rowIndex}`);
     if (expensesContainer) {
         const expenseInputs = expensesContainer.querySelectorAll('.expense-item input[type="number"]');
-        expenseInputs.forEach(input => {
-            totalExpenses += parseFloat(input.value) || 0;
-        });
+        expenseInputs.forEach(input => { totalExpenses += parseFloat(input.value) || 0; });
     }
 
     const net = morningShift + eveningShift - totalExpenses;
 
-    // Update net field
     const netField = row.cells[4].querySelector('input');
     netField.value = net;
 
-    // Visual feedback
     netField.style.color = net >= 0 ? '#27ae60' : '#e74c3c';
     netField.style.transform = 'scale(1.05)';
-    setTimeout(() => {
-        netField.style.transform = 'scale(1)';
-    }, 200);
+    setTimeout(() => { netField.style.transform = 'scale(1)'; }, 200);
 
-    // Auto-save after calculation
     saveToLocalStorage();
 }
 
@@ -308,11 +389,9 @@ function collectTableData() {
     const headers = [];
     const rows = [];
 
-    // Get headers
     const headerCells = table.querySelectorAll('thead th');
     headerCells.forEach(header => headers.push(header.textContent));
 
-    // Get data rows
     const dataRows = table.querySelectorAll('tbody tr');
     dataRows.forEach(row => {
         const rowData = [];
@@ -320,12 +399,11 @@ function collectTableData() {
 
         cells.forEach((cell, index) => {
             if (index === 3) {
-                // Expenses cell
                 const expenses = [];
                 const expenseItems = cell.querySelectorAll('.expense-item');
                 expenseItems.forEach(item => {
                     const amountInput = item.querySelector('input[type="number"]');
-                    const descInput = item.querySelector('input[type="text"]');
+                    const descInput   = item.querySelector('input[type="text"]');
                     const amount = amountInput ? amountInput.value || '0' : '0';
                     const description = descInput ? descInput.value || '' : '';
                     if (amount !== '0' || description !== '') {
@@ -377,7 +455,7 @@ function calculateSummary(tableData) {
 
 // ---------- Preview & PDF ----------
 function previewTable() {
-    const branchName = document.getElementById('branchName').value;
+    const branchName = getBranchValue();
     const reportTitle = document.getElementById('reportTitle').value;
     const reportDate = document.getElementById('reportDate').value || isoToday();
     const tableData = collectTableData();
@@ -392,7 +470,6 @@ function previewTable() {
 
     document.getElementById('pdfPreview').innerHTML = previewHtml;
     document.getElementById('preview').style.display = 'block';
-
     document.getElementById('preview').scrollIntoView({ behavior: 'smooth' });
 
     showNotification('تم إنشاء المعاينة بنجاح', 'success');
@@ -406,11 +483,7 @@ function formatDate(dateString) {
     const val = dateString || isoToday();
     const date = new Date(val);
     if (isNaN(date.getTime())) return new Date().toLocaleDateString('ar-EG');
-    return date.toLocaleDateString('ar-EG', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 function formatNumber(num) {
@@ -512,7 +585,7 @@ function createPDFTemplate(branchName, reportTitle, reportDate, tableData, summa
 }
 
 async function generatePDF() {
-    const branchName = document.getElementById('branchName').value;
+    const branchName = getBranchValue();
     const reportTitle = document.getElementById('reportTitle').value;
     const reportDate = document.getElementById('reportDate').value || isoToday();
     const tableData = collectTableData();
@@ -551,20 +624,15 @@ async function generatePDF() {
         });
 
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
         const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 295; // A4 height in mm
+        const imgWidth = 210;
+        const pageHeight = 295;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
         let heightLeft = imgHeight;
 
         let position = 0;
-
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
 
@@ -592,7 +660,7 @@ async function generatePDF() {
 
 // ---------- CSV Export ----------
 function exportToExcel() {
-    const branchName = document.getElementById('branchName').value;
+    const branchName = getBranchValue();
     const reportTitle = document.getElementById('reportTitle').value;
     const reportDate = document.getElementById('reportDate').value || isoToday();
     const tableData = collectTableData();
@@ -604,7 +672,6 @@ function exportToExcel() {
 
     let csvContent = `\uFEFF${reportTitle} - ${branchName}\n`;
     csvContent += `تاريخ التقرير: ${formatDate(reportDate)}\n\n`;
-
     csvContent += tableData.headers.join(',') + '\n';
 
     tableData.rows.forEach(row => {
@@ -632,9 +699,7 @@ function exportToExcel() {
 // ---------- Notifications ----------
 function showNotification(message, type = 'info') {
     const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
+    if (existingNotification) existingNotification.remove();
 
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -660,17 +725,11 @@ function showNotification(message, type = 'info') {
 
     document.body.appendChild(notification);
 
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
+    setTimeout(() => { notification.style.transform = 'translateX(0)'; }, 100);
 
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
+        setTimeout(() => { notification.parentNode && notification.parentNode.removeChild(notification); }, 300);
     }, 3000);
 }
 
@@ -683,7 +742,7 @@ function renderTableFromData(tableData) {
         const tr = document.createElement('tr');
         tr.setAttribute('data-row', i);
 
-        // Date (as type="date")
+        // Date
         const td0 = document.createElement('td');
         td0.innerHTML = `<input type="date" value="${toIsoDateOrEmpty(row[0]) || isoToday()}">`;
         tr.appendChild(td0);
@@ -745,10 +804,8 @@ function renderTableFromData(tableData) {
         tbody.appendChild(tr);
     });
 
-    // Update rowCounter
     rowCounter = tableData.rows.length;
 
-    // Bind save events
     tbody.querySelectorAll('input, select').forEach(input => {
         input.addEventListener('change', saveToLocalStorage);
         input.addEventListener('input', saveToLocalStorage);
