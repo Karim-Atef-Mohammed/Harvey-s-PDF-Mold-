@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Mold For D.Rofy Gomaa</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-logo">
+                <div class="logo-container">
+                    <img src="assets/Harvey's Logo.jpg" alt="Harvey Logo">
+                </div>
+                <div class="header-text">
+                    <h1>PDF Mold For D.Rofy Gomaa</h1>
+                    <p>نظام Harvey المتطور لإدارة الحسابات</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="input-section">
+            <h2>إعدادات التقرير</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="branchName">الفرع:</label>
+                    <select id="branchName" class="dropdown">
+                        <option value="فرع قليوب" selected>فرع قليوب</option>
+                        <option value="فرع القناطر">فرع القناطر</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportTitle">عنوان التقرير:</label>
+                    <input type="text" id="reportTitle" placeholder="الحسابات" value="الحسابات">
+                </div>
+                <div class="form-group">
+                    <label for="reportDate">تاريخ التقرير:</label>
+                    <input type="date" id="reportDate">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-input">
+            <h2>بيانات الجدول</h2>
+            <div class="table-controls">
+                <button onclick="addRow()" class="btn-add">
+                    <span class="btn-icon">➕</span>
+                    إضافة صف
+                </button>
+                <button onclick="removeRow()" class="btn-remove">
+                    <span class="btn-icon">➖</span>
+                    حذف صف
+                </button>
+                <button onclick="clearTable()" class="btn-clear">
+                    <span class="btn-icon">🗑️</span>
+                    مسح الجدول
+                </button>
+            </div>
+            
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>شيفت صباحي</th>
+                            <th>شيفت مسائي</th>
+                            <th>خوارج</th>
+                            <th>صافي</th>
+                            <th>تسليمات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-row="0">
+                            <td><input type="text" placeholder="x/x"></td>
+                            <td><input type="number" placeholder="0" onchange="calculateNet(0)" oninput="calculateNet(0)"></td>
+                            <td><input type="number" placeholder="0" onchange="calculateNet(0)" oninput="calculateNet(0)"></td>
+                            <td class="expenses-cell">
+                                <div class="expenses-container" id="expenses-0">
+                                    <div class="expense-item">
+                                        <input type="number" placeholder="المبلغ"  onchange="calculateNet(0)" oninput="calculateNet(0)">
+                                        <span class="expense-separator">:</span>
+                                        <input type="text" placeholder="الوصف"  class="expense-description">
+                                        <button type="button" onclick="removeExpense(this, 0)" class="remove-expense" title="حذف المصروف">×</button>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addExpense(0)" class="add-expense">+ إضافة مصروف</button>
+                            </td>
+                            <td><input type="number" class="net-field" readonly ></td>
+                            <td><input type="number"  placeholder="0"></td>
+                        </tr>
+                        <!-- <tr data-row="1">
+                            <td><input type="text" value="2/9" placeholder="2/9"></td>
+                            <td><input type="number" value="5820" placeholder="0" onchange="calculateNet(1)" oninput="calculateNet(1)"></td>
+                            <td><input type="number" value="7954" placeholder="0" onchange="calculateNet(1)" oninput="calculateNet(1)"></td>
+                            <td class="expenses-cell">
+                                <div class="expenses-container" id="expenses-1">
+                                    <div class="expense-item">
+                                        <input type="number" placeholder="المبلغ" value="200" onchange="calculateNet(1)" oninput="calculateNet(1)">
+                                        <span class="expense-separator">:</span>
+                                        <input type="text" placeholder="الوصف" value="Coffee" class="expense-description">
+                                        <button type="button" onclick="removeExpense(this, 1)" class="remove-expense" title="حذف المصروف">×</button>
+                                    </div>
+                                    <div class="expense-item">
+                                        <input type="number" placeholder="المبلغ" value="150" onchange="calculateNet(1)" oninput="calculateNet(1)">
+                                        <span class="expense-separator">:</span>
+                                        <input type="text" placeholder="الوصف" value="Office supplies" class="expense-description">
+                                        <button type="button" onclick="removeExpense(this, 1)" class="remove-expense" title="حذف المصروف">×</button>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addExpense(1)" class="add-expense">+ إضافة مصروف</button>
+                            </td>
+                            <td><input type="number" class="net-field" readonly value="13424"></td>
+                            <td><input type="number" value="525" placeholder="0"></td>
+                        </tr> -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button onclick="generatePDF()" class="generate-btn">
+                <span class="btn-icon">📄</span>
+                <span class="btn-text">تحويل إلى PDF</span>
+            </button>
+            <button onclick="previewTable()" class="preview-btn">
+                <span class="btn-icon">👁️</span>
+                <span class="btn-text">معاينة</span>
+            </button>
+            <button onclick="exportToExcel()" class="excel-btn">
+                <span class="btn-icon">📊</span>
+                <span class="btn-text">تصدير Excel</span>
+            </button>
+        </div>
+
+        <div id="preview" class="preview-section" style="display: none;">
+            <div class="preview-header">
+                <h2>معاينة PDF</h2>
+                <button onclick="closePreview()" class="close-btn">إغلاق المعاينة</button>
+            </div>
+            <div id="pdfPreview"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

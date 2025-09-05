@@ -1,0 +1,840 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+
+:root {
+    --primary-color: #ed6aac;
+    --secondary-color: #7dbbb9;
+    --accent-gradient: linear-gradient(135deg, #ed6aac 0%, #7dbbb9 100%);
+    --text-dark: #2c3e50;
+    --text-light: #7f8c8d;
+    --bg-light: #f8f9fa;
+    --border-color: #e9ecef;
+    --shadow: 0 10px 30px rgba(0,0,0,0.1);
+    --shadow-hover: 0 15px 40px rgba(0,0,0,0.15);
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Tajawal', Arial, sans-serif;
+    background: var(--accent-gradient);
+    min-height: 100vh;
+    direction: rtl;
+    text-align: right;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 15px;
+}
+
+/* Header Styles */
+header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.logo-container {
+    flex-shrink: 0;
+}
+
+.harvey-logo {
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 5px 15px rgba(237, 106, 172, 0.4));
+    transition: transform 0.3s ease;
+}
+
+.harvey-logo:hover {
+    transform: scale(1.05);
+}
+
+.header-text {
+    text-align: center;
+}
+
+.header-text h1 {
+    font-size: 2.2rem;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    font-weight: 700;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-text p {
+    font-size: 1rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+/* Form Styles */
+.input-section {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color);
+}
+
+.input-section h2 {
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 1.4rem;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.input-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--accent-gradient);
+    border-radius: 2px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.form-group input, .dropdown {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    direction: rtl;
+    background: white;
+    font-family: inherit;
+}
+
+.form-group input:focus, .dropdown:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(237, 106, 172, 0.1);
+    transform: translateY(-1px);
+}
+
+.dropdown {
+    cursor: pointer;
+}
+
+/* Table Section */
+.table-input {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color);
+}
+
+.table-input h2 {
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 1.4rem;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.table-input h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--accent-gradient);
+    border-radius: 2px;
+}
+
+.table-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.table-controls button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-add {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-remove {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-clear {
+    background: var(--warning-color);
+    color: white;
+}
+
+.table-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    background: white;
+}
+
+#dataTable {
+    width: 100%;
+    border-collapse: collapse;
+    direction: rtl;
+    background: white;
+    min-width: 1000px;
+}
+
+#dataTable th {
+    background: var(--accent-gradient);
+    color: white;
+    padding: 15px 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    white-space: nowrap;
+}
+
+#dataTable th:first-child {
+    border-top-right-radius: 12px;
+}
+
+#dataTable th:last-child {
+    border-top-left-radius: 12px;
+}
+
+#dataTable td {
+    padding: 12px 8px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    background: white;
+    vertical-align: top;
+}
+
+#dataTable tr:nth-child(even) td {
+    background: #f8f9fa;
+}
+
+#dataTable input {
+    border: none;
+    padding: 8px;
+    background: transparent;
+    text-align: center;
+    direction: rtl;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+#dataTable input:focus {
+    outline: none;
+    background: rgba(237, 106, 172, 0.05);
+    border-radius: 6px;
+}
+
+.net-field {
+    background: linear-gradient(135deg, rgba(237, 106, 172, 0.1), rgba(125, 187, 185, 0.1)) !important;
+    font-weight: bold !important;
+    color: var(--primary-color) !important;
+    border-radius: 6px !important;
+}
+
+/* Expenses Section */
+.expenses-cell {
+    min-width: 280px;
+    padding: 8px !important;
+}
+
+.expenses-container {
+    margin-bottom: 8px;
+}
+
+.expense-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    background: rgba(125, 187, 185, 0.05);
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(125, 187, 185, 0.2);
+    min-height: 40px;
+}
+
+.expense-item input[type="number"] {
+    width: 70px;
+    padding: 4px 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.expense-separator {
+    font-weight: bold;
+    color: var(--secondary-color);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.expense-description {
+    flex: 1;
+    padding: 4px 6px !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    background: white !important;
+    text-align: right !important;
+    direction: rtl !important;
+    min-width: 120px;
+}
+
+.expense-description:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(237, 106, 172, 0.1) !important;
+}
+
+.remove-expense {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.remove-expense:hover {
+    background: #c0392b;
+    transform: scale(1.1);
+}
+
+.add-expense {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.add-expense:hover {
+    background: #6ba8a6;
+    transform: translateY(-1px);
+}
+
+/* Action Buttons */
+.actions {
+    text-align: center;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.generate-btn, .preview-btn, .excel-btn {
+    padding: 15px 25px;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+    justify-content: center;
+}
+
+.generate-btn {
+    background: var(--accent-gradient);
+    color: white;
+}
+
+.preview-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.excel-btn {
+    background: linear-gradient(135deg, var(--success-color), #229954);
+    color: white;
+}
+
+.generate-btn:hover, .preview-btn:hover, .excel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+/* Preview Section */
+.preview-section {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.preview-header h2 {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+.close-btn {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.close-btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* PDF Template Styles */
+.pdf-template {
+    background: white;
+    padding: 30px;
+    max-width: 800px;
+    margin: 0 auto;
+    direction: rtl;
+    font-family: 'Tajawal', Arial, sans-serif;
+    box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    border-radius: 15px;
+}
+
+.pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--primary-color);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.pdf-logo-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.pdf-logo {
+    width: 70px;
+    height: 70px;
+    filter: drop-shadow(0 5px 15px rgba(237, 106, 172, 0.3));
+}
+
+.pdf-company-info {
+    text-align: left;
+}
+
+.pdf-company-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.pdf-company-subtitle {
+    font-size: 13px;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.pdf-branch {
+    color: var(--secondary-color);
+    font-size: 18px;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.pdf-title {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.pdf-title h1 {
+    color: var(--text-dark);
+    font-size: 28px;
+    margin-bottom: 12px;
+    font-weight: 700;
+    position: relative;
+    display: inline-block;
+    padding: 12px 25px;
+    background: linear-gradient(135deg, rgba(237, 106, 172, 0.1), rgba(125, 187, 185, 0.1));
+    border-radius: 15px;
+    border: 2px solid var(--primary-color);
+}
+
+.pdf-date {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 15px;
+    margin-bottom: 25px;
+    font-weight: 500;
+}
+
+.pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    direction: rtl;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.pdf-table th {
+    background: var(--accent-gradient);
+    color: white;
+    padding: 15px 12px;
+    text-align: center;
+    font-weight: 600;
+    border: none;
+    font-size: 14px;
+}
+
+.pdf-table td {
+    padding: 12px 10px;
+    border: 1px solid #e9ecef;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dark);
+    vertical-align: top;
+}
+
+.pdf-table tr:nth-child(even) {
+    background: linear-gradient(135deg, rgba(237, 106, 172, 0.03), rgba(125, 187, 185, 0.03));
+}
+
+.pdf-expenses {
+    text-align: right;
+    line-height: 1.4;
+    font-size: 11px;
+    max-width: 200px;
+}
+
+.pdf-expense-item {
+    margin-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+    background: rgba(125, 187, 185, 0.1);
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin: 2px 0;
+}
+
+.pdf-expense-amount {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.pdf-expense-desc {
+    color: var(--text-dark);
+}
+
+.net-highlight {
+    background: linear-gradient(135deg, rgba(237, 106, 172, 0.2), rgba(125, 187, 185, 0.2)) !important;
+    font-weight: bold !important;
+    color: var(--primary-color) !important;
+}
+
+.pdf-summary {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.summary-card {
+    background: linear-gradient(135deg, rgba(237, 106, 172, 0.1), rgba(125, 187, 185, 0.1));
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.summary-card h3 {
+    color: var(--text-dark);
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.summary-card .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.pdf-footer {
+    margin-top: 30px;
+    text-align: center;
+    padding-top: 15px;
+    border-top: 2px solid var(--border-color);
+    color: var(--text-light);
+    font-size: 11px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .container {
+        padding: 12px;
+    }
+    
+    #dataTable {
+        min-width: 900px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header-logo {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .header-text h1 {
+        font-size: 1.8rem;
+    }
+    
+    .harvey-logo {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .generate-btn, .preview-btn, .excel-btn {
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .table-wrapper {
+        font-size: 11px;
+    }
+    
+    #dataTable {
+        min-width: 700px;
+    }
+    
+    .expenses-cell {
+        min-width: 220px;
+    }
+    
+    .expense-item {
+        flex-direction: column;
+        gap: 4px;
+        align-items: stretch;
+    }
+    
+    .expense-item input[type="number"] {
+        width: 100%;
+    }
+    
+    .expense-description {
+        min-width: auto;
+    }
+    
+    .pdf-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .pdf-summary {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .preview-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .table-controls {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 8px;
+    }
+    
+    .input-section, .table-input {
+        padding: 15px;
+    }
+    
+    .header-text h1 {
+        font-size: 1.5rem;
+    }
+    
+    .harvey-logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    #dataTable {
+        min-width: 600px;
+        font-size: 10px;
+    }
+    
+    #dataTable th, #dataTable td {
+        padding: 8px 4px;
+    }
+    
+    .expenses-cell {
+        min-width: 180px;
+    }
+    
+    .table-controls button {
+        padding: 8px 16px;
+        font-size: 12px;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+    
+    .generate-btn, .preview-btn, .excel-btn {
+        min-width: 60px;
+        padding: 12px;
+    }
+}
+
+@media print {
+    body {
+        background: white;
+    }
+    
+    .container > *:not(.preview-section) {
+        display: none;
+    }
+    
+    .preview-section {
+        box-shadow: none;
+        padding: 0;
+    }
+}
